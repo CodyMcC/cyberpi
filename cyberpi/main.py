@@ -3,6 +3,7 @@ import tesla_fleet_api
 from tesla_fleet_api import TeslaBluetooth
 from tesla_fleet_api.const import BluetoothVehicleData
 from time import sleep
+from typing import Optional, Union
 import json
 from pathlib import Path
 try:
@@ -65,14 +66,14 @@ async def main():
     logger.info("Starting CyberPi application...")
     GPIO.setmode(GPIO.BCM) # Or GPIO.BOARD
 
-    DRIVER_LIGHT_PIN = 18  # GPIO pin for the driver light
-    PASSENGER_LIGHT_PIN = 23  # GPIO pin for the passenger light
+    DRIVER_LIGHT_PIN = 21  # GPIO pin for the driver light (Bottom left corner)
+    PASSENGER_LIGHT_PIN = 20  # GPIO pin for the passenger light (Second from the bottom left corner)
     GPIO.setup(DRIVER_LIGHT_PIN, GPIO.OUT)
     GPIO.setup(PASSENGER_LIGHT_PIN, GPIO.OUT)
 
 
     config = get_config()
-    key_path: str = config.get("key_path", '')
+    key_path: str = str(Path(config.get("key_path", '')).expanduser())
     vin: str = config.get("vin", '')
     tesla_bluetooth = TeslaBluetooth()
     await tesla_bluetooth.get_private_key(key_path)
