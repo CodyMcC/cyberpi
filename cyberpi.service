@@ -1,0 +1,15 @@
+[Unit] 
+Description=cyber-pi service
+After=network.target bluetooth.service 
+Requires=bluetooth.service
+
+[Service] 
+ExecStart=/home/codymccomber/cyberpi/venv/bin/python /home/codymccomber/cyberpi/cyberpi/main.py 
+WorkingDirectory=/home/codymccomber/cyberpi
+StandardOutput=inherit 
+StandardError=inherit 
+Restart=always 
+User=root
+
+[Install] 
+WantedBy=multi-user.target
