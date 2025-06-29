@@ -6,23 +6,27 @@ from time import sleep
 from typing import Optional, Union
 import json
 from pathlib import Path
-try:
-    import RPi.GPIO as GPIO
-except ImportError:
-    print("RPi.GPIO not found, using mock GPIO for testing.")
-    from cyberpi.mock_gpio import GPIO  # For testing without a Raspberry Pi
-    # from .mock_gpio import GPIO # For testing without a Raspberry Pi
+from gpiozero import LED, Button
+# try:
+#     import RPi.GPIO as GPIO
+# except ImportError:
+#     print("RPi.GPIO not found, using mock GPIO for testing.")
+#     from cyberpi.mock_gpio import GPIO  # For testing without a Raspberry Pi
+#     # from .mock_gpio import GPIO # For testing without a Raspberry Pi
     
 import signal
 import sys
 import logging
 
 
+DRIVER_LIGHT_PIN = 21  # GPIO pin for the driver light (Bottom left corner)
+PASSENGER_LIGHT_PIN = 20  # GPIO pin for the passenger light (Second from the bottom left corner)
+
 
 
 def signal_handler(sig, frame):
     print('\nYou pressed Ctrl+C!')
-    GPIO.cleanup()
+    # GPIO.cleanup()
     sys.exit(0)
 
 
@@ -65,12 +69,14 @@ async def main():
     # Create a logger
     logger = setup_logging()
     logger.info("Starting CyberPi application...")
-    GPIO.setmode(GPIO.BOARD) # Or GPIO.BOARD or GPIO.BCM
+    # GPIO.setmode(GPIO.BOARD) # Or GPIO.BOARD or GPIO.BCM
 
-    DRIVER_LIGHT_PIN = 21  # GPIO pin for the driver light (Bottom left corner)
-    PASSENGER_LIGHT_PIN = 20  # GPIO pin for the passenger light (Second from the bottom left corner)
-    GPIO.setup(DRIVER_LIGHT_PIN, GPIO.OUT)
-    GPIO.setup(PASSENGER_LIGHT_PIN, GPIO.OUT)
+    
+    driver_light = LED(DRIVER_LIGHT_PIN) 
+    passenger_light = LED(PASSENGER_LIGHT_PIN) 
+
+    # GPIO.setup(DRIVER_LIGHT_PIN, GPIO.OUT)
+    # GPIO.setup(PASSENGER_LIGHT_PIN, GPIO.OUT)
 
 
     config = get_config()
@@ -93,16 +99,18 @@ async def main():
         logger.info(f"Driver open: {data.closures_state.door_open_driver_front or data.closures_state.door_open_driver_rear} - Passenger open: {data.closures_state.door_open_passenger_front or data.closures_state.door_open_passenger_rear}")
         
         if data.closures_state.door_open_passenger_front or data.closures_state.door_open_passenger_rear:
-            GPIO.output(PASSENGER_LIGHT_PIN, GPIO.HIGH)
-            logger.info(f"Passenger door is open, turning on passenger light. {PASSENGER_LIGHT_PIN} {GPIO.HIGH}")
+            # GPIO.output(PASSENGER_LIGHT_PIN, GPIO.HIGH)
+            passenger_light.on()
+            logger.info(f"Passenger door is open, turning on passenger light. ")
         else:
-            GPIO.output(PASSENGER_LIGHT_PIN, GPIO.LOW)
-            logger.info(f"Passenger door is closed, turning off passenger light. {PASSENGER_LIGHT_PIN} {GPIO.LOW}")
+            # GPIO.output(PASSENGER_LIGHT_PIN, GPIO.LOW)
+            passenger_light.off()
+            logger.info(f"Passenger door is closed, turning off passenger light. ")
         
-        if data.closures_state.door_open_driver_front or data.closures_state.door_open_driver_rear:
-            GPIO.output(DRIVER_LIGHT_PIN, GPIO.HIGH)
-        else:
-            GPIO.output(DRIVER_LIGHT_PIN, GPIO.LOW)
+        # if data.closures_state.door_open_driver_front or data.closures_state.door_open_driver_rear:
+        #     GPIO.output(DRIVER_LIGHT_PIN, GPIO.HIGH)
+        # else:
+        #     GPIO.output(DRIVER_LIGHT_PIN, GPIO.LOW)
 
 asyncio.run(main())
 
