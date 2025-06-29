@@ -92,10 +92,10 @@ async def main():
         logger.info(f"Driver open: {data.closures_state.door_open_driver_front or data.closures_state.door_open_driver_rear} - Passenger open: {data.closures_state.door_open_passenger_front or data.closures_state.door_open_passenger_rear}")
         if data.closures_state.door_open_passenger_front or data.closures_state.door_open_passenger_rear:
             GPIO.output(PASSENGER_LIGHT_PIN, GPIO.HIGH)
-            logger.info("Passenger door is open, turning on passenger light.", PASSENGER_LIGHT_PIN, GPIO.HIGH)
+            logger.info(f"Passenger door is open, turning on passenger light. {PASSENGER_LIGHT_PIN} {GPIO.HIGH}")
         else:
             GPIO.output(PASSENGER_LIGHT_PIN, GPIO.LOW)
-        logger.info("Passenger door is closed, turning on passenger light.", PASSENGER_LIGHT_PIN, GPIO.HIGH)
+        logger.info(f"Passenger door is closed, turning off passenger light. {PASSENGER_LIGHT_PIN} {GPIO.LOW}")
         
         if data.closures_state.door_open_driver_front or data.closures_state.door_open_driver_rear:
             GPIO.output(DRIVER_LIGHT_PIN, GPIO.HIGH)
