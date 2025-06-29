@@ -107,19 +107,9 @@ async def establish_connection(key_path: str, vin: str, logger: logging.Logger) 
         return None
 
     logger.info(f"Created VehicleBluetooth instance for VIN: {vehicle.vin}")
-    # state = await vehicle.vehicle_state()
-    # print(state)
-    # for key in vehicle.__dir__():
-    #     if key.startswith('_'):
-    #         continue
-    #     value = getattr(vehicle, key)
-    #     if isinstance(value, (str, int, float, bool)):
-    #         print(f"{key}: {value}")
-    #     else:
-    #         print(f"{key}: {type(value)}")
-    # # print(vehicle.__dir__())
-    # print()
-    # print()
+    state = await vehicle.vehicle_state()
+    print(state)
+
     return vehicle
 
 async def main():
@@ -132,11 +122,11 @@ async def main():
     passenger_side_relay = Relay(PASSENGER_LIGHT_PIN, "passenger", logger)  # Relay for passenger
     lock_relay = Relay(16, "lock", logger)  # Relay for lock (not used in this example) 
     awake_relay = Relay(12, "awake", logger)  # Relay for awake (not used in this example)
-    logger.info("Setting all relays to off initially")
-    driver_side_relay.off()
-    passenger_side_relay.off()
-    lock_relay.off()
-    awake_relay.off()
+    # logger.info("Setting all relays to off initially")
+    # driver_side_relay.off()
+    # passenger_side_relay.off()
+    # lock_relay.off()
+    # awake_relay.off()
 
 
     config = get_config()
@@ -191,8 +181,8 @@ async def main():
             # print(state.closureStatuses.frontDriverDoor)
             # front_driver_door = getattr(closure_statuses, 'frontDriverDoor', 'CLOSURESTATE_CLOSED')
             # print(f"Front Driver Door: {front_driver_door}")
-            print(state.__dir__())
-            print("vehicleSleepStatus", state.vehicleSleepStatus, type(state.vehicleSleepStatus))
+            # print(state.__dir__())
+            # print("vehicleSleepStatus", state.vehicleSleepStatus, type(state.vehicleSleepStatus))
             if state.closureStatuses.frontPassengerDoor or state.closureStatuses.rearPassengerDoor:
                 passenger_side_relay.on()
             else:
