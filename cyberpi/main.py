@@ -9,6 +9,7 @@ from pathlib import Path
 try:
     import RPi.GPIO as GPIO
 except ImportError:
+    print("RPi.GPIO not found, using mock GPIO for testing.")
     from cyberpi.mock_gpio import GPIO  # For testing without a Raspberry Pi
     # from .mock_gpio import GPIO # For testing without a Raspberry Pi
     
