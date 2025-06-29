@@ -148,7 +148,7 @@ async def main():
 
             try:
                 # data = await vehicle.vehicle_data([BluetoothVehicleData.CLOSURES_STATE])
-                data = await vehicle.closures_state()
+                # data = await vehicle.closures_state()
                 state = await vehicle.vehicle_state()
                 # print(data)
             except TimeoutError as e:
@@ -169,20 +169,20 @@ async def main():
                 print(state)
             # logger.info(f"Driver open: {data.closures_state.door_open_driver_front or data.closures_state.door_open_driver_rear} - Passenger open: {data.closures_state.door_open_passenger_front or data.closures_state.door_open_passenger_rear}")
             
-            if data.door_open_passenger_front or data.door_open_passenger_rear:
-                passenger_side_relay.on()
-            else:
-                passenger_side_relay.off()
+            # if data.door_open_passenger_front or data.door_open_passenger_rear:
+            #     passenger_side_relay.on()
+            # else:
+            #     passenger_side_relay.off()
             
-            if data.door_open_driver_front or data.door_open_driver_rear:
-                driver_side_relay.on()
-            else:
-                driver_side_relay.off()
+            # if data.door_open_driver_front or data.door_open_driver_rear:
+            #     driver_side_relay.on()
+            # else:
+            #     driver_side_relay.off()
 
-            if data.locked:
-                lock_relay.off()
-            else:
-                lock_relay.on()
+            # if data.locked:
+            #     lock_relay.off()
+            # else:
+            #     lock_relay.on()
 
 
 asyncio.run(main())
