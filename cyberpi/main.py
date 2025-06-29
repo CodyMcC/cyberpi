@@ -4,11 +4,13 @@ print(1, perf_counter())
 import asyncio
 print(2, perf_counter())
 # import tesla_fleet_api
-from tesla_fleet_api import TeslaBluetooth
+from tesla_fleet_api import TeslaBluetooth # this takes 12 seconds on pi
 print(3, perf_counter())
 from tesla_fleet_api.tesla import VehicleBluetooth
 print(4, perf_counter())
 from tesla_fleet_api.const import BluetoothVehicleData
+from tesla_fleet_api.exceptions import TeslaFleetMessageFaultInvalidTokenOrCounter
+
 print(5, perf_counter())
 from time import sleep
 print(6, perf_counter())
@@ -151,6 +153,10 @@ async def main():
                 break  # Exit the inner loop to re-establish connection
             except InvalidTag as e:
                 logger.error(f"Invalid tag error while fetching vehicle data (break): {e}")
+                # await asyncio.sleep(5)
+                break
+            except TeslaFleetMessageFaultInvalidTokenOrCounter as e:
+                logger.error(f"Invalid token or counter error while fetching vehicle data (break): {e}")
                 # await asyncio.sleep(5)
                 break
 
