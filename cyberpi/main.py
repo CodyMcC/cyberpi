@@ -126,8 +126,8 @@ async def main():
     logger = setup_logging()
     logger.info("Starting CyberPi application...")
 
-    driver_side_relay = Relay(DRIVER_LIGHT_PIN, "driver")  # Relay for driver side light
-    passenger_side_relay = Relay(PASSENGER_LIGHT_PIN, "passenger")  # Relay for passenger
+    driver_side_relay = Relay(DRIVER_LIGHT_PIN, "driver", logger)  # Relay for driver side light
+    passenger_side_relay = Relay(PASSENGER_LIGHT_PIN, "passenger", logger)  # Relay for passenger
     lock_relay = Relay(16, "lock", logger)  # Relay for lock (not used in this example) 
 
 
