@@ -1,41 +1,28 @@
 
-from time import perf_counter
-print(1, perf_counter())
-import asyncio
-print(2, perf_counter())
-# import tesla_fleet_api
+
+
 from tesla_fleet_api import TeslaBluetooth # this takes 12 seconds on pi
-print(3, perf_counter())
 from tesla_fleet_api.tesla import VehicleBluetooth
-print(4, perf_counter())
 from tesla_fleet_api.const import BluetoothVehicleData
 from tesla_fleet_api.exceptions import TeslaFleetMessageFaultInvalidTokenOrCounter
-
-print(5, perf_counter())
-from time import sleep
-print(6, perf_counter())
-from typing import Optional, Union
-print(7, perf_counter())
-import json
-print(8, perf_counter())
-from pathlib import Path
-print(9, perf_counter())
+from cryptography.exceptions import InvalidSignature, InvalidTag
 try:
     from gpiozero import LED
 except ImportError:
     print("gpiozero not found, running in simulation mode.")
     from mock_gpiozero import LED  # Fallback for simulation
     
-print(10, perf_counter())
+import asyncio
+from time import sleep
+from time import perf_counter
+from typing import Optional, Union
+import json
+from pathlib import Path
 import signal
-print(11, perf_counter())
 import sys
-print(12, perf_counter())
 import logging
-print(13, perf_counter())
 
-from cryptography.exceptions import InvalidSignature, InvalidTag
-print(14, perf_counter())
+
 
 
 DRIVER_LIGHT_PIN = 21  # GPIO pin for the driver light (Bottom left corner)
@@ -120,6 +107,17 @@ async def establish_connection(key_path: str, vin: str, logger: logging.Logger) 
         sys.exit(1)
 
     logger.info(f"Created VehicleBluetooth instance for VIN: {vehicle.vin}")
+    state = await vehicle.vehicle_state()
+    print(state)
+    for key in vehicle.__dir__():
+        if key.startswith('_'):
+            continue
+        value = getattr(vehicle, key)
+        if isinstance(value, (str, int, float, bool)):
+            print(f"{key}: {value}")
+        else:
+            print(f"{key}: {type(value)}")
+    # print(vehicle.__dir__())
     return vehicle
 
 async def main():
@@ -140,12 +138,18 @@ async def main():
     
     
     while True:
+        counter = 0 
         vehicle = await establish_connection(key_path, vin, logger)
+        
+        
 
         while True:
+            counter += 1
 
             try:
-                data = await vehicle.vehicle_data([BluetoothVehicleData.CLOSURES_STATE])
+                # data = await vehicle.vehicle_data([BluetoothVehicleData.CLOSURES_STATE])
+                data = await vehicle.closures_state()
+                state = await vehicle.vehicle_state()
                 # print(data)
             except TimeoutError as e:
                 logger.error(f"Timeout error while fetching vehicle data (break): {e}")
@@ -160,19 +164,22 @@ async def main():
                 # await asyncio.sleep(5)
                 break
 
+
+            if counter % 10 == 0:
+                print(state)
             # logger.info(f"Driver open: {data.closures_state.door_open_driver_front or data.closures_state.door_open_driver_rear} - Passenger open: {data.closures_state.door_open_passenger_front or data.closures_state.door_open_passenger_rear}")
             
-            if data.closures_state.door_open_passenger_front or data.closures_state.door_open_passenger_rear:
+            if data.door_open_passenger_front or data.door_open_passenger_rear:
                 passenger_side_relay.on()
             else:
                 passenger_side_relay.off()
             
-            if data.closures_state.door_open_driver_front or data.closures_state.door_open_driver_rear:
+            if data.door_open_driver_front or data.door_open_driver_rear:
                 driver_side_relay.on()
             else:
                 driver_side_relay.off()
 
-            if data.closures_state.locked:
+            if data.locked:
                 lock_relay.off()
             else:
                 lock_relay.on()
