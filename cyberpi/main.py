@@ -118,6 +118,8 @@ async def establish_connection(key_path: str, vin: str, logger: logging.Logger) 
         else:
             print(f"{key}: {type(value)}")
     # print(vehicle.__dir__())
+    print()
+    print()
     return vehicle
 
 async def main():
@@ -129,6 +131,12 @@ async def main():
     driver_side_relay = Relay(DRIVER_LIGHT_PIN, "driver", logger)  # Relay for driver side light
     passenger_side_relay = Relay(PASSENGER_LIGHT_PIN, "passenger", logger)  # Relay for passenger
     lock_relay = Relay(16, "lock", logger)  # Relay for lock (not used in this example) 
+    awake_relay = Relay(12, "awake", logger)  # Relay for awake (not used in this example)
+    logger.info("Setting all relays to off initially")
+    driver_side_relay.off()
+    passenger_side_relay.off()
+    lock_relay.off()
+    awake_relay.off()
 
 
     config = get_config()
@@ -150,6 +158,10 @@ async def main():
                 # data = await vehicle.vehicle_data([BluetoothVehicleData.CLOSURES_STATE])
                 # data = await vehicle.closures_state()
                 state = await vehicle.vehicle_state()
+                # print(state.__dir__())
+                # print(state.detailedClosureStatus)
+                # print("__")
+                # print(state.closureStatuses.__dir__())
                 # print(data)
             except TimeoutError as e:
                 logger.error(f"Timeout error while fetching vehicle data (break): {e}")
@@ -165,24 +177,38 @@ async def main():
                 break
 
 
-            if counter % 10 == 0:
-                print(state)
+            # if counter % 10 == 0:
+            #     print(state)
+            # print(state)
             # logger.info(f"Driver open: {data.closures_state.door_open_driver_front or data.closures_state.door_open_driver_rear} - Passenger open: {data.closures_state.door_open_passenger_front or data.closures_state.door_open_passenger_rear}")
             
-            # if data.door_open_passenger_front or data.door_open_passenger_rear:
-            #     passenger_side_relay.on()
-            # else:
-            #     passenger_side_relay.off()
-            
-            # if data.door_open_driver_front or data.door_open_driver_rear:
-            #     driver_side_relay.on()
-            # else:
-            #     driver_side_relay.off()
 
-            # if data.locked:
-            #     lock_relay.off()
-            # else:
-            #     lock_relay.on()
+
+            # closure_statuses = getattr(state, 'closureStatuses', None)
+            # print(state.closureStatuses.frontDriverDoor)
+            # front_driver_door = getattr(closure_statuses, 'frontDriverDoor', 'CLOSURESTATE_CLOSED')
+            # print(f"Front Driver Door: {front_driver_door}")
+            
+
+            if state.closureStatuses.frontPassengerDoor or state.closureStatuses.rearPassengerDoor:
+                passenger_side_relay.on()
+            else:
+                passenger_side_relay.off()
+            
+            if state.closureStatuses.frontDriverDoor or state.closureStatuses.rearDriverDoor:
+                driver_side_relay.on()
+            else:
+                driver_side_relay.off()
+
+            if state.vehicleLockState:
+                lock_relay.off()
+            else:
+                lock_relay.on()
+
+            if state.vehicleSleepStatus:
+                awake_relay.on()
+            else:
+                awake_relay.off()
 
 
 asyncio.run(main())
