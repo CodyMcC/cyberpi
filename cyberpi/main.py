@@ -104,22 +104,22 @@ async def establish_connection(key_path: str, vin: str, logger: logging.Logger) 
     except ValueError as e:
         logger.error(f"Error finding vehicle: {e}")
         logger.info("Please check your VIN and key path in the configuration file.")
-        sys.exit(1)
+        return None
 
     logger.info(f"Created VehicleBluetooth instance for VIN: {vehicle.vin}")
-    state = await vehicle.vehicle_state()
-    print(state)
-    for key in vehicle.__dir__():
-        if key.startswith('_'):
-            continue
-        value = getattr(vehicle, key)
-        if isinstance(value, (str, int, float, bool)):
-            print(f"{key}: {value}")
-        else:
-            print(f"{key}: {type(value)}")
-    # print(vehicle.__dir__())
-    print()
-    print()
+    # state = await vehicle.vehicle_state()
+    # print(state)
+    # for key in vehicle.__dir__():
+    #     if key.startswith('_'):
+    #         continue
+    #     value = getattr(vehicle, key)
+    #     if isinstance(value, (str, int, float, bool)):
+    #         print(f"{key}: {value}")
+    #     else:
+    #         print(f"{key}: {type(value)}")
+    # # print(vehicle.__dir__())
+    # print()
+    # print()
     return vehicle
 
 async def main():
@@ -147,7 +147,10 @@ async def main():
     
     while True:
         counter = 0 
+        logger.info("Attempting to establish connection to vehicle...")
         vehicle = await establish_connection(key_path, vin, logger)
+        if not vehicle:
+            continue
         
         
 
