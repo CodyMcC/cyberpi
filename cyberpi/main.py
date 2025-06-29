@@ -1,25 +1,39 @@
+
+from time import perf_counter
+print(1, perf_counter())
 import asyncio
-import tesla_fleet_api
+print(2, perf_counter())
+# import tesla_fleet_api
 from tesla_fleet_api import TeslaBluetooth
+print(3, perf_counter())
 from tesla_fleet_api.tesla import VehicleBluetooth
+print(4, perf_counter())
 from tesla_fleet_api.const import BluetoothVehicleData
+print(5, perf_counter())
 from time import sleep
+print(6, perf_counter())
 from typing import Optional, Union
+print(7, perf_counter())
 import json
+print(8, perf_counter())
 from pathlib import Path
+print(9, perf_counter())
 try:
     from gpiozero import LED
 except ImportError:
     print("gpiozero not found, running in simulation mode.")
     from mock_gpiozero import LED  # Fallback for simulation
     
-from time import perf_counter
+print(10, perf_counter())
 import signal
+print(11, perf_counter())
 import sys
+print(12, perf_counter())
 import logging
+print(13, perf_counter())
 
 from cryptography.exceptions import InvalidSignature, InvalidTag
-
+print(14, perf_counter())
 
 
 DRIVER_LIGHT_PIN = 21  # GPIO pin for the driver light (Bottom left corner)
