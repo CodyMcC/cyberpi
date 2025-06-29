@@ -18,6 +18,9 @@ import signal
 import sys
 import logging
 
+from cryptography.exceptions import InvalidSignature, InvalidTag
+
+
 
 DRIVER_LIGHT_PIN = 21  # GPIO pin for the driver light (Bottom left corner)
 PASSENGER_LIGHT_PIN = 20  # GPIO pin for the passenger light (Second from the bottom left corner)
@@ -129,6 +132,10 @@ async def main():
                 logger.error(f"Timeout error while fetching vehicle data: {e}")
                 # await asyncio.sleep(5)
                 break  # Exit the inner loop to re-establish connection
+            except InvalidTag as e:
+                logger.error(f"Invalid tag error while fetching vehicle data (continue): {e}")
+                # await asyncio.sleep(5)
+                continue
 
             # logger.info(f"Driver open: {data.closures_state.door_open_driver_front or data.closures_state.door_open_driver_rear} - Passenger open: {data.closures_state.door_open_passenger_front or data.closures_state.door_open_passenger_rear}")
             
