@@ -130,7 +130,7 @@ async def main():
 
             try:
                 data = await vehicle.vehicle_data([BluetoothVehicleData.CLOSURES_STATE])
-                print(data)
+                # print(data)
             except TimeoutError as e:
                 logger.error(f"Timeout error while fetching vehicle data (break): {e}")
                 # await asyncio.sleep(5)
