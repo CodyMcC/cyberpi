@@ -6,14 +6,13 @@ from time import sleep
 from typing import Optional, Union
 import json
 from pathlib import Path
-from gpiozero import LED, Button
-# try:
-#     import RPi.GPIO as GPIO
-# except ImportError:
-#     print("RPi.GPIO not found, using mock GPIO for testing.")
-#     from cyberpi.mock_gpio import GPIO  # For testing without a Raspberry Pi
-#     # from .mock_gpio import GPIO # For testing without a Raspberry Pi
+try:
+    from gpiozero import LED
+except ImportError:
+    print("gpiozero not found, running in simulation mode.")
+    from mock_gpiozero import LED  # Fallback for simulation
     
+
 import signal
 import sys
 import logging
@@ -23,15 +22,9 @@ DRIVER_LIGHT_PIN = 21  # GPIO pin for the driver light (Bottom left corner)
 PASSENGER_LIGHT_PIN = 20  # GPIO pin for the passenger light (Second from the bottom left corner)
 
 
-
 def signal_handler(sig, frame):
     print('\nYou pressed Ctrl+C!')
-    # GPIO.cleanup()
     sys.exit(0)
-
-
-# print('Press Ctrl+C')
-# signal.pause()
 
 
 def setup_logging():
@@ -69,14 +62,10 @@ async def main():
     # Create a logger
     logger = setup_logging()
     logger.info("Starting CyberPi application...")
-    # GPIO.setmode(GPIO.BOARD) # Or GPIO.BOARD or GPIO.BCM
 
     
     driver_light = LED(DRIVER_LIGHT_PIN) 
     passenger_light = LED(PASSENGER_LIGHT_PIN) 
-
-    # GPIO.setup(DRIVER_LIGHT_PIN, GPIO.OUT)
-    # GPIO.setup(PASSENGER_LIGHT_PIN, GPIO.OUT)
 
 
     config = get_config()
@@ -87,30 +76,30 @@ async def main():
     vehicle = tesla_bluetooth.vehicles.create(vin)
 
     
-    await vehicle.find_vehicle() # ValueError: Device S3e4320fbef5e5519C not found
+    try:
+        await vehicle.find_vehicle()
+    except ValueError as e:
+        logger.error(f"Error finding vehicle: {e}")
+        logger.info("Please check your VIN and key path in the configuration file.")
+        sys.exit(1)
+        
     logger.info(f"Created VehicleBluetooth instance for VIN: {vehicle.vin}")
-
-    # data = await vehicle.vehicle_data([BluetoothVehicleData.CLOSURES_STATE])
-    # print(f"Data: {data}")
-
     
     while True:
         data = await vehicle.vehicle_data([BluetoothVehicleData.CLOSURES_STATE])
         logger.info(f"Driver open: {data.closures_state.door_open_driver_front or data.closures_state.door_open_driver_rear} - Passenger open: {data.closures_state.door_open_passenger_front or data.closures_state.door_open_passenger_rear}")
         
         if data.closures_state.door_open_passenger_front or data.closures_state.door_open_passenger_rear:
-            # GPIO.output(PASSENGER_LIGHT_PIN, GPIO.HIGH)
             passenger_light.on()
             logger.info(f"Passenger door is open, turning on passenger light. ")
         else:
-            # GPIO.output(PASSENGER_LIGHT_PIN, GPIO.LOW)
             passenger_light.off()
             logger.info(f"Passenger door is closed, turning off passenger light. ")
         
-        # if data.closures_state.door_open_driver_front or data.closures_state.door_open_driver_rear:
-        #     GPIO.output(DRIVER_LIGHT_PIN, GPIO.HIGH)
-        # else:
-        #     GPIO.output(DRIVER_LIGHT_PIN, GPIO.LOW)
+        if data.closures_state.door_open_driver_front or data.closures_state.door_open_driver_rear:
+            driver_light.on()
+        else:
+            driver_light.off()
 
 asyncio.run(main())
 
