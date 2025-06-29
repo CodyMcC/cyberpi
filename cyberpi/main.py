@@ -152,7 +152,7 @@ async def main():
                 # await asyncio.sleep(5)
                 break  # Exit the inner loop to re-establish connection
             except InvalidTag as e:
-                logger.error(f"Invalid tag error while fetching vehicle data (break): {e}")
+                logger.error(f"Invalid tag error while fetching vehicle data (break)")
                 # await asyncio.sleep(5)
                 break
             except TeslaFleetMessageFaultInvalidTokenOrCounter as e:
