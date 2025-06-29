@@ -78,7 +78,9 @@ async def main():
     tesla_bluetooth = TeslaBluetooth()
     await tesla_bluetooth.get_private_key(key_path)
     vehicle = tesla_bluetooth.vehicles.create(vin)
-    await vehicle.find_vehicle()
+
+    
+    await vehicle.find_vehicle() # ValueError: Device S3e4320fbef5e5519C not found
     logger.info(f"Created VehicleBluetooth instance for VIN: {vehicle.vin}")
 
     # data = await vehicle.vehicle_data([BluetoothVehicleData.CLOSURES_STATE])
@@ -90,8 +92,10 @@ async def main():
         logger.info(f"Driver open: {data.closures_state.door_open_driver_front or data.closures_state.door_open_driver_rear} - Passenger open: {data.closures_state.door_open_passenger_front or data.closures_state.door_open_passenger_rear}")
         if data.closures_state.door_open_passenger_front or data.closures_state.door_open_passenger_rear:
             GPIO.output(PASSENGER_LIGHT_PIN, GPIO.HIGH)
+            logger.info("Passenger door is open, turning on passenger light.", PASSENGER_LIGHT_PIN, GPIO.HIGH)
         else:
             GPIO.output(PASSENGER_LIGHT_PIN, GPIO.LOW)
+        logger.info("Passenger door is closed, turning on passenger light.", PASSENGER_LIGHT_PIN, GPIO.HIGH)
         
         if data.closures_state.door_open_driver_front or data.closures_state.door_open_driver_rear:
             GPIO.output(DRIVER_LIGHT_PIN, GPIO.HIGH)
