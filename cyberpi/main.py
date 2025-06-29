@@ -64,7 +64,7 @@ async def main():
     # Create a logger
     logger = setup_logging()
     logger.info("Starting CyberPi application...")
-    GPIO.setmode(GPIO.BCM) # Or GPIO.BOARD
+    GPIO.setmode(GPIO.BOARD) # Or GPIO.BOARD or GPIO.BCM
 
     DRIVER_LIGHT_PIN = 21  # GPIO pin for the driver light (Bottom left corner)
     PASSENGER_LIGHT_PIN = 20  # GPIO pin for the passenger light (Second from the bottom left corner)
