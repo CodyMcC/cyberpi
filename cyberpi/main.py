@@ -191,8 +191,8 @@ async def main():
             # print(state.closureStatuses.frontDriverDoor)
             # front_driver_door = getattr(closure_statuses, 'frontDriverDoor', 'CLOSURESTATE_CLOSED')
             # print(f"Front Driver Door: {front_driver_door}")
-            
-
+            print(state.__dir__())
+            print("vehicleSleepStatus", state.vehicleSleepStatus, type(state.vehicleSleepStatus))
             if state.closureStatuses.frontPassengerDoor or state.closureStatuses.rearPassengerDoor:
                 passenger_side_relay.on()
             else:
@@ -208,9 +208,9 @@ async def main():
             else:
                 lock_relay.on()
 
-            if state.vehicleSleepStatus:
+            if state.vehicleSleepStatus == 1:
                 awake_relay.on()
-            else:
+            else: # 0 is unknown, 2 is awake
                 awake_relay.off()
 
 
