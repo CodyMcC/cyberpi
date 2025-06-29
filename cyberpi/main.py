@@ -61,25 +61,28 @@ def setup_logging():
 
 
 class Relay:
-    def __init__(self, pin: int, description: str):
+    def __init__(self, pin: int, description: str, logger: Optional[logging.Logger] = None):
         self.pin = pin
         self.state = False
         self.switch = LED(pin)  
         self.description = description
+        self.logger = logger
 
     def on(self):
         if self.state:
             return
         self.state = True
         self.switch.on()  
-        print(f"Relay on pin {self.pin} turned ON ({self.description})")
-
+        message = f"Relay on pin {self.pin} turned ON ({self.description})"
+        self.logger.info(message) if self.logger else print(message)
+        
     def off(self):
         if not self.state:
             return
         self.state = False
         self.switch.off()
-        print(f"Relay on pin {self.pin} turned OFF ({self.description})")
+        message = f"Relay on pin {self.pin} turned OFF ({self.description})"
+        self.logger.info(message) if self.logger else print(message)
 
 
 def get_config(path="~/.cyber_pi.config") -> dict:
@@ -111,8 +114,7 @@ async def main():
 
     driver_side_relay = Relay(DRIVER_LIGHT_PIN, "driver")  # Relay for driver side light
     passenger_side_relay = Relay(PASSENGER_LIGHT_PIN, "passenger")  # Relay for passenger
-    # driver_light = LED(DRIVER_LIGHT_PIN) 
-    # passenger_light = LED(PASSENGER_LIGHT_PIN) 
+    lock_relay = Relay(16, "lock", logger)  # Relay for lock (not used in this example) 
 
 
     config = get_config()
@@ -128,14 +130,15 @@ async def main():
 
             try:
                 data = await vehicle.vehicle_data([BluetoothVehicleData.CLOSURES_STATE])
+                print(data)
             except TimeoutError as e:
-                logger.error(f"Timeout error while fetching vehicle data: {e}")
+                logger.error(f"Timeout error while fetching vehicle data (break): {e}")
                 # await asyncio.sleep(5)
                 break  # Exit the inner loop to re-establish connection
             except InvalidTag as e:
-                logger.error(f"Invalid tag error while fetching vehicle data (continue): {e}")
+                logger.error(f"Invalid tag error while fetching vehicle data (break): {e}")
                 # await asyncio.sleep(5)
-                continue
+                break
 
             # logger.info(f"Driver open: {data.closures_state.door_open_driver_front or data.closures_state.door_open_driver_rear} - Passenger open: {data.closures_state.door_open_passenger_front or data.closures_state.door_open_passenger_rear}")
             
@@ -148,6 +151,11 @@ async def main():
                 driver_side_relay.on()
             else:
                 driver_side_relay.off()
+
+            if data.closures_state.locked:
+                lock_relay.off()
+            else:
+                lock_relay.on()
 
 
 asyncio.run(main())
