@@ -119,11 +119,9 @@ async def establish_connection(key_path: str, vin: str, logger: logging.Logger) 
 
     return vehicle
 
-async def main():
+async def main(logger):
     signal.signal(signal.SIGINT, signal_handler)
 
-    logger = setup_logging()
-    logger.info("Starting CyberPi application...")
 
     driver_side_relay = Relay(DRIVER_LIGHT_PIN, "driver", logger)  # Relay for driver side light
     passenger_side_relay = Relay(PASSENGER_LIGHT_PIN, "passenger", logger)  # Relay for passenger
@@ -181,6 +179,12 @@ async def main():
                 awake_relay.off()
 
 
-asyncio.run(main())
+logger = setup_logging()
+logger.info("Starting CyberPi application...")
+try: 
+    asyncio.run(main(logger))
+except Exception as e:
+    logger.info(f"An error occurred: {e}")
+    sys.exit(1)
 
 
