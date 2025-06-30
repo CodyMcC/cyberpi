@@ -96,19 +96,26 @@ def get_config(path="~/.cyber_pi.config") -> dict:
 async def establish_connection(key_path: str, vin: str, logger: logging.Logger) -> VehicleBluetooth:
     logger.info("Establishing connection to Tesla vehicle...")
     tesla_bluetooth = TeslaBluetooth()
+    logger.info(f"Devices: {len(tesla_bluetooth.vehicles)} - {tesla_bluetooth.vehicles.keys()}")
+    
     await tesla_bluetooth.get_private_key(key_path)
-    vehicle = tesla_bluetooth.vehicles.create(vin)
 
+    vehicle = tesla_bluetooth.vehicles.create(vin)
+    
     try:
         await vehicle.find_vehicle()
     except ValueError as e:
         logger.error(f"Error finding vehicle: {e}")
         logger.info("Please check your VIN and key path in the configuration file.")
         return None
+    
+    logger.info("Connecting...")
+    await vehicle.connect()
 
     logger.info(f"Created VehicleBluetooth instance for VIN: {vehicle.vin}")
     state = await vehicle.vehicle_state()
-    print(state)
+    logger.info(f"Vehicle state: {state}")
+    logger.info(f"Devices: {len(tesla_bluetooth.vehicles)} - {tesla_bluetooth.vehicles.keys()}")
 
     return vehicle
 
@@ -122,18 +129,10 @@ async def main():
     passenger_side_relay = Relay(PASSENGER_LIGHT_PIN, "passenger", logger)  # Relay for passenger
     lock_relay = Relay(16, "lock", logger)  # Relay for lock (not used in this example) 
     awake_relay = Relay(12, "awake", logger)  # Relay for awake (not used in this example)
-    # logger.info("Setting all relays to off initially")
-    # driver_side_relay.off()
-    # passenger_side_relay.off()
-    # lock_relay.off()
-    # awake_relay.off()
-
 
     config = get_config()
     key_path: str = str(Path(config.get("key_path", '')).expanduser())
     vin: str = config.get("vin", '')
-    
-    
     
     while True:
         counter = 0 
@@ -142,47 +141,25 @@ async def main():
         if not vehicle:
             continue
         
-        
 
         while True:
-            counter += 1
 
             try:
-                # data = await vehicle.vehicle_data([BluetoothVehicleData.CLOSURES_STATE])
                 # data = await vehicle.closures_state()
                 state = await vehicle.vehicle_state()
-                # print(state.__dir__())
-                # print(state.detailedClosureStatus)
-                # print("__")
-                # print(state.closureStatuses.__dir__())
-                # print(data)
+
             except TimeoutError as e:
                 logger.error(f"Timeout error while fetching vehicle data (break): {e}")
-                # await asyncio.sleep(5)
                 break  # Exit the inner loop to re-establish connection
             except InvalidTag as e:
                 logger.error(f"Invalid tag error while fetching vehicle data (break)")
-                # await asyncio.sleep(5)
                 break
             except TeslaFleetMessageFaultInvalidTokenOrCounter as e:
-                logger.error(f"Invalid token or counter error while fetching vehicle data (break): {e}")
-                # await asyncio.sleep(5)
+                logger.error(f"Invalid token or counter error while fetching vehicle data (disconnecting, break): {e}")
+                await vehicle.disconnect()
                 break
 
 
-            # if counter % 10 == 0:
-            #     print(state)
-            # print(state)
-            # logger.info(f"Driver open: {data.closures_state.door_open_driver_front or data.closures_state.door_open_driver_rear} - Passenger open: {data.closures_state.door_open_passenger_front or data.closures_state.door_open_passenger_rear}")
-            
-
-
-            # closure_statuses = getattr(state, 'closureStatuses', None)
-            # print(state.closureStatuses.frontDriverDoor)
-            # front_driver_door = getattr(closure_statuses, 'frontDriverDoor', 'CLOSURESTATE_CLOSED')
-            # print(f"Front Driver Door: {front_driver_door}")
-            # print(state.__dir__())
-            # print("vehicleSleepStatus", state.vehicleSleepStatus, type(state.vehicleSleepStatus))
             if state.closureStatuses.frontPassengerDoor or state.closureStatuses.rearPassengerDoor:
                 passenger_side_relay.on()
             else:
