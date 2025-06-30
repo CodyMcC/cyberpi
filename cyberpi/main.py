@@ -180,7 +180,7 @@ async def main(logger):
 
 
 logger = setup_logging()
-logger.info("Starting CyberPi application...")
+logger.info("##### Starting CyberPi application...#####")
 try: 
     asyncio.run(main(logger))
 except Exception as e:
